@@ -142,7 +142,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 parser.add_argument('-H', '--hostname', default='127.0.0.1', help='Hostname to connect to')
 parser.add_argument('-p', '--port', default=8052, type=int, help='Port to connect to')
-parser.add_argument('-n', '--name', default='RandomBot', help='Name of bot')
+parser.add_argument('-n', '--name', default='HiveBot', help='Name of bot')
 args = parser.parse_args()
 
 # Set up console logging
@@ -170,10 +170,14 @@ while True:
 			GameServer.sendMessage(ServerMessageTypes.FIRE)
 	elif i == 10:
 		logging.info("Turning randomly")
-		GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING, {'Amount': random.randint(0, 359)})
+		GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT, {'Amount': random.randint(0, 359)})
+
+	elif i == 8:
+		logging.info("Turning randomly")
+		GameServer.sendMessage(ServerMessageTypes.TOGGLEFORWARD, {'Amount': random.randint(0, 359)})
 	elif i == 15:
 		logging.info("Moving randomly")
-		GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {'Amount': random.randint(0, 10)})
+		GameServer.sendMessage(ServerMessageTypes.TOGGLERIGHT, {'Amount': random.randint(0, 10)})
 	i = i + 1
 	if i > 20:
 		i = 0
