@@ -8,6 +8,7 @@ import struct
 import argparse
 import random
 import time
+import math
 
 
 class ServerMessageTypes(object):
@@ -170,24 +171,62 @@ logging.info("Creating tank with name '{}'".format(args.name))
 GameServer.sendMessage(ServerMessageTypes.CREATETANK, {'Name': args.name})
 
 
+def getHeading(x1,y1,x2,y2):
+        heading = math.atan2(y1-y2,x1-x2)
+        heading = (heading * (180/math.pi))
+        heading = (heading-360)%360
+        return abs(heading)
+
+def pointTankTo(turn_amount,cur_x,cur_y):
+        offset_ang = getHeading(cur_x,cur_y,0,70)
+        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING,{"Amount":offset_ang+turn_amount})
+                
+
+def getDistance(x1,y1,x2,y2):
+        heading_x = x2-x1
+        heading_y = y2-y1
+        return(math.sqrt((heading_x*heading_x) + (heading_y*heading_y)))
+
+
+
+def moveTo(x,y):
+        
+        data = GameServer.readMessage()
+        loc_found = False
+        while(not(loc_found)):
+                
+                print(data)
+                if(len(data)>1):
+                        if (data["Name"] == "HIVEbot"):
+                                loc_found=True
+                                cur_y= data["X"]
+                                cur_x = data["Y"]
+                                print("currentx = %f" % cur_x)
+                                print("currenty = %f" % cur_y)
+                                point_to = getHeading(cur_x,cur_y,x,y)
+                                print(point_to)
+                                pointTankTo(point_to,cur_x,cur_y)
+                                distance = getDistance(cur_x,cur_y,x,y)
+                                GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {"Amount":distance})
+                data = GameServer.readMessage()
+                                
 # Main loop - read game messages, ignore them and randomly perform actions
-while True:
+v=1
+while v:
         message = GameServer.readMessage()
-        #logging.info(message)
+        logging.info(message)
+        logging.info("firing")
+        GameServer.sendMessage(ServerMessageTypes.FIRE)
         #GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {'Amount': 100})
         #GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT,{'Amount':50})
+        moveTo(0,0)
+        print("HERE")
+        v=0
+
 
 
 
 	
-def moveto(x,y):
-        data = GameServer.readMessage()
-        print(data)
-        if(len(data)>1):
-                if (data["Name"] == "HIVEbot"):
-                        print("aaaaa")
-                        cur_y= data["X"]
-                        cur_x = data["Y"]
-                        print("currentx = %f" % cur_x)
-                        print("currenty = %f" % cur_y)
-        time.sleep(20)
+
+
+    
