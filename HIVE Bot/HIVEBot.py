@@ -192,12 +192,12 @@ def evalChance(HDat,ODat):
 
         if HAmmo<OHealth:
                 return(False)
-        elif HHealth<OAmmo and HHealth = 1 and OHealth>1:
+        elif HHealth<OAmmo and HHealth == 1 and OHealth>1:
                 return(False)
         else:
                 return(True)
 
-def goGoals(cur_x,cur_y)
+def goGoals(cur_x,cur_y):
         targ_x = 0
         if getDistance(cur_x,cur_y,0,100)>122:
                 targ_y = -100
@@ -205,15 +205,31 @@ def goGoals(cur_x,cur_y)
                 targ_y = 100
 
 
+def shoot(cur_x,cur_y,tar_x,tar_y):
+    #Turn turret to tar x tary
+    #shoot
+
+    distance = getDistance(cur_x,cur_y,tar_x,tar_y)
+
+    if (distance < 50):
+        direction = getAng(cur_x, cur_y, targ_x, targ_y)
+        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING, {'Amount': direction})
+        GameServer.sendMessage(ServerMessageTypes.FIRE)
+
+
+#id 556
+
+
         
                                 
 # Main loop - read game messages, ignore them and randomly perform actions
 targ_x = 0
 targ_y = 0
-priority_level = 0
 snitch_present = 0
 bank = 0
-busy = 0
+busy = False
+nearestHPack = []
+nearestAPack = []
 while True:
 
         
@@ -232,22 +248,39 @@ while True:
                                 health = data["Health"]
                         if data["Type"] == "AmmoPickup":
                                 if len(nearestAPack)<1:
-                                        nearestAPack[0] = data["X"]
-                                        nearestAPack[1] = data["Y"]
+                                        nearestAPack.append(data["X"])
+                                        nearestAPack.append(data["Y"])
                                 else:
+                                        if getDistance(cur_x,cur_y,nearestAPack[0],nearestAPack[1])>getDistance(cur_x,cur_y,data["X"],data["Y"]):
+                                                nearestAPack[0] = data["X"]
+                                                nearestAPack[1] = data["Y"]
+                        if data["Type"] == "HealthPickup":
+                                if len(nearestHPack)<1:
+                                        nearestHPack.append(data["X"])
+                                        nearestHPack.append(data["Y"])
+                                else:
+                                        if getDistance(cur_x,cur_y,nearestHPack[0],nearestHPack[1])>getDistance(cur_x,cur_y,data["X"],data["Y"]):
+                                                nearestHPack[0] = data["X"]
+                                                nearestHPack[1] = data["Y"]
+                        
+                                                
                                         
 
 
 
 
         if bank:
-                busy = 1
+                busy = True
                 goGoals(cur_x,cur_y)
 
-                elif not(busy):
-                        if ammo = 0:
+                if not(busy):
+                        if ammo < 6  and health > 1:
                                 targ_x = nearestAPack[0]
                                 targ_y = nearestAPack[1]
+                else:
+                        targ_x = nearestHPack[0]
+                        targ_y = nearestHPack[1]
+                
                                 
                                 
 
