@@ -171,15 +171,36 @@ logging.info("Creating tank with name '{}'".format(args.name))
 GameServer.sendMessage(ServerMessageTypes.CREATETANK, {'Name': args.name})
 
 
-def getHeading(x1,y1,x2,y2):
-        heading = math.atan2(y1-y2,x1-x2)
-        heading = (heading * (180/math.pi))
-        heading = (heading-360)%360
-        return abs(heading)
+def getHeading(x,y):
+        #offset = math.atan(x/y)
+        #offset = (offset*180)/math.pi
+        if x>0 and y>0:
+                offset = math.atan(x/y)
+                offset = abs((offset*180)/math.pi) + 90
+                return(offset)
+        elif x>0 and y<0:
+                offset = math.atan(x/y)
+                offset = (offset*180)/math.pi
+                print("Aaaaaaaa:%f"%offset)
+                offset = 180 + (90-abs(offset))
+                return(offset)
+        elif x<0 and y>0:
+                offset = math.atan(x/y)
+                offset = 90 - abs((offset*180)/math.pi)
+                return(offset)
+        elif x<0 and y<0:
+                offset = math.atan(x/y)
+                offset =270 + abs((offset*180)/math.pi)
+                return(offset)
+        else:
+                return(0)
 
-def pointTankTo(turn_amount,cur_x,cur_y):
-        offset_ang = getHeading(cur_x,cur_y,0,70)
-        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING,{"Amount":offset_ang+turn_amount})
+def pointTankTo(degree):
+        #offset_ang = getHeading(cur_x,cur_y,0,70)
+        print("turn")
+        time.sleep(4)
+        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING,{"Amount":degree})
+        print("turned")
                 
 
 def getDistance(x1,y1,x2,y2):
@@ -199,13 +220,14 @@ def moveTo(x,y):
                 if(len(data)>1):
                         if (data["Name"] == "HIVEbot"):
                                 loc_found=True
-                                cur_y= data["X"]
-                                cur_x = data["Y"]
+                                cur_x= data["X"]
+                                cur_y = data["Y"]
                                 print("currentx = %f" % cur_x)
                                 print("currenty = %f" % cur_y)
-                                point_to = getHeading(cur_x,cur_y,x,y)
-                                print(point_to)
-                                pointTankTo(point_to,cur_x,cur_y)
+                                print("pointing at %f"% data["Heading"])
+                                degree = getHeading(cur_x,cur_y)
+                                print("degree: %f"%degree)
+                                pointTankTo(degree)
                                 distance = getDistance(cur_x,cur_y,x,y)
                                 GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {"Amount":distance})
                 data = GameServer.readMessage()
@@ -221,6 +243,7 @@ while v:
         #GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT,{'Amount':50})
         moveTo(0,0)
         print("HERE")
+        GameServer.sendMessage(ServerMessageTypes.FIRE)
         v=0
 
 
