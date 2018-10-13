@@ -169,82 +169,82 @@ GameServer = ServerComms(args.hostname, args.port)
 # Spawn our tank
 logging.info("Creating tank with name '{}'".format(args.name))
 GameServer.sendMessage(ServerMessageTypes.CREATETANK, {'Name': args.name})
-
-
-def getHeading(x,y):
-        #offset = math.atan(x/y)
-        #offset = (offset*180)/math.pi
-        if x>0 and y>0:
-                offset = math.atan(x/y)
-                offset = abs((offset*180)/math.pi) + 90
-                return(offset)
-        elif x>0 and y<0:
-                offset = math.atan(x/y)
-                offset = (offset*180)/math.pi
-                print("Aaaaaaaa:%f"%offset)
-                offset = 180 + (90-abs(offset))
-                return(offset)
-        elif x<0 and y>0:
-                offset = math.atan(x/y)
-                offset = 90 - abs((offset*180)/math.pi)
-                return(offset)
-        elif x<0 and y<0:
-                offset = math.atan(x/y)
-                offset =270 + abs((offset*180)/math.pi)
-                return(offset)
-        else:
-                return(0)
-
-def pointTankTo(degree):
-        #offset_ang = getHeading(cur_x,cur_y,0,70)
-        print("turn")
-        time.sleep(4)
-        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING,{"Amount":degree})
-        print("turned")
-                
+            
 
 def getDistance(x1,y1,x2,y2):
         heading_x = x2-x1
         heading_y = y2-y1
         return(math.sqrt((heading_x*heading_x) + (heading_y*heading_y)))
 
+def getAng(x1,y1,x2,y2):
+        t1 = math.atan2(y2-y1,x2-x1)
+        t1 = (t1*180)/math.pi
+        t1 = (t1-360)%360
+        return(360-t1)
 
-
-def moveTo(x,y):
-        
-        data = GameServer.readMessage()
-        loc_found = False
-        while(not(loc_found)):
-                
-                print(data)
-                if(len(data)>1):
-                        if (data["Name"] == "HIVEbot"):
-                                loc_found=True
-                                cur_x= data["X"]
-                                cur_y = data["Y"]
-                                print("currentx = %f" % cur_x)
-                                print("currenty = %f" % cur_y)
-                                print("pointing at %f"% data["Heading"])
-                                degree = getHeading(cur_x,cur_y)
-                                print("degree: %f"%degree)
-                                pointTankTo(degree)
-                                distance = getDistance(cur_x,cur_y,x,y)
-                                GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {"Amount":distance})
-                data = GameServer.readMessage()
                                 
 # Main loop - read game messages, ignore them and randomly perform actions
-v=1
-while v:
-        message = GameServer.readMessage()
-        logging.info(message)
-        logging.info("firing")
-        GameServer.sendMessage(ServerMessageTypes.FIRE)
-        #GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {'Amount': 100})
-        #GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT,{'Amount':50})
-        moveTo(0,0)
-        print("HERE")
-        GameServer.sendMessage(ServerMessageTypes.FIRE)
-        v=0
+targ_x = 0
+targ_y = 0
+priority_level = 0
+snitch_present = 0
+while True:
+
+        
+
+        data = GameServer.readMessage()
+        GameServer.sendMessage(ServerMessageTypes.TOGGLEFORWARD)
+
+        if not(data == None):
+                print(data)
+                if(len(data)>1):
+                        print(data)
+                        if (data["Name"] == "HIVEbot"):
+                                cur_x= data["X"]
+                                cur_y = data["Y"]
+                                if ((data["Ammo"]<4 and data["Health"]>2) or(data["Ammo"]<10 and data["Health"]==5)):
+                                        priority_level = 0
+                                elif snitch_present:
+                                        priority_level = 2
+                                else:
+                                        priority_level = 1
+
+                        if data["Type"] == "AmmoPickup" and priority_level == 0:
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
+                                
+                        if data["Type"] == "HealthPickup" and priority_level == 1:
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
+
+                        if data["Type"] == "Snitch":
+                                snitch_present = 1
+                                print(data)
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
+
+                        #if GameServer.sendMessage(ServerMessageTypes.SNITCHPICKUP):
+                                #targ_x = 0
+                                #if getDistance(cur_x,cur_y,0,100)>122:
+                                        #targ_y = -100
+                                #else:
+                                        #targ_y = 100
+
+        
+                        ##GET A DIRECTION TO TRAVEL IN
+                        ##CHANGE DIRECTION UNTIL FACING
+                        #print(targ_x,targ_y)
+                        GameServer.sendMessage(ServerMessageTypes.TURNTOHEADING,{'Amount':getAng(cur_x,cur_y,targ_x,targ_y)})
+
+                        if cur_x == 0.0 and cur_y == 0.0:
+                                GameServer.sendMessage(ServerMessageTypes.STOPMOVE)
+                                GameServer.sendMessage(ServerMessageTypes.STOPTURN)
+                        #GameServer.sendMessage(ServerMessageTypes.FIRE)
+                        #GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {'Amount': 100})
+                        #GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT,{'Amount':50})
+                        #print("HERE")
+                        #GameServer.sendMessage(ServerMessageTypes.FIRE)
+
 
 
 
