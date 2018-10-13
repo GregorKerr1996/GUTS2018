@@ -152,7 +152,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 parser.add_argument('-H', '--hostname', default='127.0.0.1', help='Hostname to connect to')
 parser.add_argument('-p', '--port', default=8052, type=int, help='Port to connect to')
+<<<<<<< HEAD
 parser.add_argument('-n', '--name', default='HIVEbot', help='Name of bot')
+=======
+parser.add_argument('-n', '--name', default='HiveBot', help='Name of bot')
+>>>>>>> 5035628ae3e095315dd98c7065b80e916892e598
 args = parser.parse_args()
 
 # Set up console logging
@@ -172,6 +176,7 @@ GameServer.sendMessage(ServerMessageTypes.CREATETANK, {'Name': args.name})
 
 # Main loop - read game messages, ignore them and randomly perform actions
 while True:
+<<<<<<< HEAD
         message = GameServer.readMessage()
         #logging.info(message)
         #GameServer.sendMessage(ServerMessageTypes.MOVEFORWARDDISTANCE, {'Amount': 100})
@@ -191,3 +196,24 @@ def moveto(x,y):
                         print("currentx = %f" % cur_x)
                         print("currenty = %f" % cur_y)
         time.sleep(20)
+=======
+	message = GameServer.readMessage()
+    
+	if i == 5:
+		if random.randint(0, 10) > 5:
+			logging.info("Firing")
+			GameServer.sendMessage(ServerMessageTypes.FIRE)
+	elif i == 10:
+		logging.info("Turning randomly")
+		GameServer.sendMessage(ServerMessageTypes.TOGGLELEFT, {'Amount': random.randint(0, 359)})
+
+	elif i == 8:
+		logging.info("Turning randomly")
+		GameServer.sendMessage(ServerMessageTypes.TOGGLEFORWARD, {'Amount': random.randint(0, 359)})
+	elif i == 15:
+		logging.info("Moving randomly")
+		GameServer.sendMessage(ServerMessageTypes.TOGGLERIGHT, {'Amount': random.randint(0, 10)})
+	i = i + 1
+	if i > 20:
+		i = 0
+>>>>>>> 5035628ae3e095315dd98c7065b80e916892e598
