@@ -182,43 +182,17 @@ def getAng(x1,y1,x2,y2):
         t1 = (t1-360)%360
         return(360-t1)
 
-
-def evalChance(HDat,ODat):
-        HHealth = HData["Health"]
-        OHealth = ODat["Health"]
-
-        HAmmo = HData["Ammo"]
-        OAmmo = ODat["Ammo"]
-
-        if HAmmo<OHealth:
-                return(False)
-        elif HHealth<OAmmo and HHealth = 1 and OHealth>1:
-                return(False)
-        else:
-                return(True)
-
-def goGoals(cur_x,cur_y)
-        targ_x = 0
-        if getDistance(cur_x,cur_y,0,100)>122:
-                targ_y = -100
-        else:
-                targ_y = 100
-
-
-        
                                 
 # Main loop - read game messages, ignore them and randomly perform actions
 targ_x = 0
 targ_y = 0
 priority_level = 0
 snitch_present = 0
-bank = 0
-busy = 0
 while True:
 
         
 
-        data = GameServer.readMessage() 
+        data = GameServer.readMessage()
         GameServer.sendMessage(ServerMessageTypes.TOGGLEFORWARD)
 
         if not(data == None):
@@ -228,42 +202,26 @@ while True:
                         if (data["Name"] == "HIVEbot"):
                                 cur_x= data["X"]
                                 cur_y = data["Y"]
-                                ammo = data["Ammo"]
-                                health = data["Health"]
-                        if data["Type"] == "AmmoPickup":
-                                if len(nearestAPack)<1:
-                                        nearestAPack[0] = data["X"]
-                                        nearestAPack[1] = data["Y"]
+                                if ((data["Ammo"]<4 and data["Health"]>2) or(data["Ammo"]<10 and data["Health"]==5)):
+                                        priority_level = 0
+                                elif snitch_present:
+                                        priority_level = 2
                                 else:
-                                        
+                                        priority_level = 1
 
-
-
-
-        if bank:
-                busy = 1
-                goGoals(cur_x,cur_y)
-
-                elif not(busy):
-                        if ammo = 0:
-                                targ_x = nearestAPack[0]
-                                targ_y = nearestAPack[1]
+                        if data["Type"] == "AmmoPickup" and priority_level == 0:
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
                                 
-                                
+                        if data["Type"] == "HealthPickup" and priority_level == 1:
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
 
-                        #if data["Type"] == "AmmoPickup":
-                         #       targ_x = data["X"]
-                          #      targ_y = data["Y"]
-                                
-                        #if data["Type"] == "HealthPickup":
-                         #       targ_x = data["X"]
-                          #      targ_y = data["Y"]
-
-                        #if data["Type"] == "Snitch":
-                         #       snitch_present = 1
-                          #      print(data)
-                           #     targ_x = data["X"]
-                            #    targ_y = data["Y"]
+                        if data["Type"] == "Snitch":
+                                snitch_present = 1
+                                print(data)
+                                targ_x = data["X"]
+                                targ_y = data["Y"]
 
                         #if GameServer.sendMessage(ServerMessageTypes.SNITCHPICKUP):
                                 #targ_x = 0
